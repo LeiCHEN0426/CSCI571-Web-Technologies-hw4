@@ -1,0 +1,172 @@
+<html>
+   
+<body>	
+     <script lang="JavaScript">
+       
+         var ht="";
+         var xmlDoc;
+         function viewXML(what){
+             var errorType = 0;
+             var url=what.URL.value;
+             var isExist = document.readyState;
+					if (url=="") {
+						errorType = 1; //no input
+						alert("No XML files' names are input,Please input a va");
+						return;
+					}
+            
+             function loadXML(url) {
+                 if (window.XMLHttpRequest)
+                    {// code for IE7+, Firefox, Chrome, Opera, Safari
+                        xmlhttp=new XMLHttpRequest();
+                    }
+                else
+                    {// code for IE6, IE5
+                        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+      	
+                    }
+                    xmlhttp.open("GET",url,false); 
+                 // ‘false’ = synchronous request xmlhttp.send(); 
+                 
+                       
+                    xmlhttp.send();
+                 if(xmlhttp.status==404){
+						errorType = 4;
+						alert("XML file does not exist!!!");
+                        return;}
+					 //only for server testing
+                 xmlDoc=xmlhttp.responseXML;
+                    return xmlDoc;
+                                    }
+              xmlDoc = loadXML(url);
+             if(xmlDoc.documentElement.nodeName == "parsererror"){
+					errorType = 2;
+					alert("This is NOT a valid XML file so it cannot been solved!!!");
+					return;
+				}//file is invalid
+             if(errorType==0){
+             xmlDoc = generateHTML(xmlDoc);
+             }
+         }
+                function is_all_ws(node){
+			  // Use ECMA-262 Edition 3 String and RegExp features
+			  return !(/[^\t\n\r ]/.test(node.textContent));
+			}
+			     function is_ignorable(node){
+			  return ( node.nodeType == 8) || // A comment node
+			         ( (node.nodeType == 3) && is_all_ws(node) ); // a text node, all ws
+			}
+			     function deletespace(str){
+				return str.replace(/^\s+|\s+$/g, '');
+			}//using for space in textnode
+                function generateHTML(xmlDoc){
+             
+             var first=xmlDoc.getElementsByTagName("Row");
+             if(first.length==0){
+                 alert("No News Companies Exist in this XML Document!!!!!");
+                 return;
+             }
+             
+             
+             var newtable = window.open("","","scrollbars = yes","width=500","height=300");
+             ELEMENT_NODE = 1;  //node type 
+			   	var root = xmlDoc.DocumentElement; //return root node
+             	newtable.document.write("<!DOCTYPE html>\n<html><head></head>\n<body>\n");
+             newtable.document.write("<table border='1'>");
+             newtable.document.write("<thead><tr>");
+                var a=xmlDoc.getElementsByTagName("Header")[0];
+             var aaa=a.childNodes;
+            for(var i=0;i<aaa.length;i++){
+                if(aaa[i].nodeType==1){
+             newtable.document.write("<th>"+aaa[i].firstChild.nodeValue+"</th>");
+            }
+            }
+              newtable.document.write("</tr></thead><tbody>");
+             
+             var block=xmlDoc.getElementsByTagName("Row");
+            for(var j=0;j<block.length;j++){
+                newtable.document.write("<tr>");
+                var temp=block.item(j).childNodes;
+                for(var k=0;k<aaa.length;k++){
+                   
+                        if(temp[k].nodeName=="Slot"){
+                            if(temp[k].hasChildNodes()){
+                            if(!is_ignorable(temp[k].firstChild)){
+                            newtable.document.write("<td>"+temp[k].firstChild.nodeValue+"</td>");
+                            }
+                            else{
+                                newtable.document.write("<td>"+"ggg"+"</td>");
+                            }
+                            }
+                            else{
+                                newtable.document.write("<td>"+"g"+"</td>");
+                            }
+                        }
+                        
+                       else if(temp[k].nodeName=="Newspaper"){
+                            
+                            newtable.document.write("<td>"+temp[k].firstChild.nodeValue+"</td>");
+                        }
+                         else if(temp[k].nodeName=="HomePage"){
+                            
+                            newtable.document.write("<td><a href='"+temp[k].firstChild.nodeValue+"'>"+temp[k].firstChild.nodeValue+"</a></td>");
+                        }
+                       else if (temp[k].nodeName == "Logo") {
+								
+									if (temp[k].hasChildNodes()) {
+                                        if(!is_ignorable(temp[k].childNodes[0])){
+                                        
+										newtable.document.write("<th><img src="+ temp[k].childNodes[0].nodeValue +" /></th>");
+                                        }
+                                        else{
+                                            newtable.document.write("<th>"+ "a " +"</th>");
+                                        }
+                                        }
+                                        else{
+                                             newtable.document.write("<th>"+ " hhh" +"</th>");
+                                        }
+									}
+									
+                                
+                                   
+                     
+						
+                        	else if (temp[k].nodeName == "Location") {
+								var feed = temp[k].childNodes;
+								newtable.document.write("<th><ul>\n");
+								for (var m = 0; m<feed.length; m++) {
+									if (!is_ignorable(feed[m])){ //only<Feed>tags 
+										if(feed[m].hasChildNodes()){//feed is empty..
+											if(!is_ignorable(feed[m].childNodes[0])){
+												newtable.document.write("<li>"+feed[m].childNodes[0].nodeValue+"</li>");
+											     
+										}
+									}
+								}
+                                }
+								newtable.document.write("</ul></th>\n");	
+                            
+                            }
+ 
+                    }
+     
+                 newtable.document.write("</tr>");
+            }
+
+             newtable.document.write("</tbody></table>");
+             newtable.document.write("</body></html>\n");
+             
+         }
+         
+     
+    </script>
+    <div id="change" align="center"><p>Enter URL for Company List XML File</p>
+        
+		<form name="myform" method="POST" id="location">
+		<input type="text" name="URL" maxlength="255" size="36" value="" />
+		<br /><br />
+		<input class="submit" type="button" name="submit" value="Submit Query" onClick="viewXML(this.form)" >
+		</form>
+		</div>
+	</body>
+    </html>

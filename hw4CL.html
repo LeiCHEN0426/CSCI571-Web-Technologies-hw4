@@ -1,0 +1,174 @@
+<html>
+<body>
+    <script lang="javascript">
+    function viewXML(what){
+        var errorType=0;
+        var URL=what.URL.value;
+        var str=URL.replace(/^\s+|\s+$/g, '')
+        if (str=="") {
+						errorType = 1; 
+						alert("No XML files' names are input,Please input a valid name!!");
+						return;
+					}
+        function loadXML(url){
+            if(window.XMLHttpRequest){
+                xmlhttp=new XMLHttpRequest();
+            }
+            xmlhttp.open("GET",url,false);
+            xmlhttp.send();
+            if(xmlhttp.status==404){
+						errorType = 4;
+						alert("XML file does not exist!!!");
+                        return;
+            }
+            xmlDoc=xmlhttp.responseXML;
+            return xmlDoc;
+            }
+            xmlDoc=loadXML(URL);
+            if(xmlDoc.documentElement.nodeName == "parsererror"){
+					errorType = 2;
+					alert("This is NOT a valid XML file so it cannot be solved!!!");
+					return;
+				}
+            if(errorType==0){
+            xmlDoc.onload=generateHTML(xmlDoc);
+            }
+            hWin.document.close();
+    }
+        function is_all_ws(node){
+			  return !(/[^\t\n\r ]/.test(node.textContent));
+			}
+			     function is_ignorable(node){
+			  return ( node.nodeType == 8) ||
+			         ( (node.nodeType == 3) && is_all_ws(node) ); 
+			}
+        function generateHTML(xmlDoc){
+            ELEMENT_NODE=1;
+            root=xmlDoc.documentElement;
+            var row=xmlDoc.getElementsByTagName("Row");
+            if(row.length==0){
+                alert("No Newspaper Companies exist in XML!! ");
+                return;
+            }
+            var hWin=window.open("","","scrollbars=yes","width=500","height=300");
+            hWin.document.write("<html><head><title>XML Parser Result</title></head><bo"+"dy>");
+            hWin.document.write("<table border='1'><thead><tr>");
+            var header=xmlDoc.getElementsByTagName("Header").item(0);
+            for(var i=0;i<header.childNodes.length;i++){
+                if(header.childNodes[i].nodeType==ELEMENT_NODE){
+                    if(header.childNodes[i].hasChildNodes()){
+                        if(!is_ignorable(header.childNodes[i].firstChild)){
+                    hWin.document.write("<th>"+header.childNodes[i].childNodes[0].nodeValue+"</th>");
+                        }
+                        else{
+                            hWin.document.write("<th></th>");
+                        }
+                    }
+                    else{
+                         hWin.document.write("<th>"+"</th>");
+                    }
+                }     
+            }
+            hWin.document.write("</tr></thead><tbody>");
+            
+            
+             for(var j=0;j<row.length;j++){
+                hWin.document.write("<tr>");
+                 var temp=row.item(j).childNodes;
+                for(var k=0;k<temp.length;k++){
+                    if(temp[k].nodeType==ELEMENT_NODE){
+                        if(temp[k].nodeName=="Slot"){
+                            if(temp[k].hasChildNodes()){
+                                if(!is_ignorable(temp[k].firstChild)){
+                                hWin.document.write("<td>"+temp[k].firstChild.nodeValue+"</td>");
+                                }
+                                else{
+                                    hWin.document.write("<td></td>");
+                                }
+                            }
+                            else{
+                                hWin.document.write("<td></td>");
+                            }
+                        }
+                         else if(temp[k].nodeName=="Newspaper"){
+                            if(temp[k].hasChildNodes()){
+                                if(!is_ignorable(temp[k].firstChild)){
+                                hWin.document.write("<td>"+temp[k].firstChild.nodeValue+"</td>");
+                                }
+                                else{
+                                    hWin.document.write("<td></td>");
+                                }
+                            }
+                            else{
+                                hWin.document.write("<td></td>");
+                            }
+                        }
+                         else if(temp[k].nodeName=="HomePage"){
+                            if(temp[k].hasChildNodes()){
+                                if(!is_ignorable(temp[k].firstChild)){
+                        hWin.document.write("<td><a href='"+temp[k].firstChild.nodeValue+"'>"+temp[k].firstChild.nodeValue+"</a></td>");
+                                }
+                                else{
+                                    hWin.document.write("<td></td>");
+                                }
+                            }
+                            else{
+                                hWin.document.write("<td></td>");
+                            }
+                        }
+                         else if(temp[k].nodeName=="Logo"){
+                            if(temp[k].hasChildNodes()){
+                                if(!is_ignorable(temp[k].firstChild)){
+                        hWin.document.write("<td><img src='"+temp[k].firstChild.nodeValue+"' />"+"</td>");
+                                }
+                                else{
+                                    hWin.document.write("<td></td>");
+                                }
+                            }
+                            else{
+                                hWin.document.write("<td></td>");
+                            }
+                        }
+                        else if(temp[k].nodeName="Location"){
+                            hWin.document.write("<td><ul>");
+                            for(var m=0;m<temp[k].childNodes.length;m++){
+                                if(temp[k].childNodes[m].nodeType==1){
+                                    if(temp[k].childNodes[m].hasChildNodes()){
+                                        if(!is_ignorable(temp[k].childNodes[m].firstChild)){
+                                            
+                                            hWin.document.write("<li>"+temp[k].childNodes[m].firstChild.nodeValue+"</li>");
+                                        }
+                                        
+                                    }
+                                    
+                                    
+                                    
+                                }
+                            }
+                            hWin.document.write("</ul></td>");
+                            
+                        }
+                       
+                }
+               
+            }
+            
+            hWin.document.write("</tr>"); 
+            
+        }
+            hWin.document.write("</tbody></table></body></html>");
+            
+           
+        }
+    document.close();
+    
+    </script>
+    <div align="center">
+        <p><b>Enter URL for Newspaper List XML File</b></p>
+        <form name="myform" method="post" id="location">
+            <input type=text name="URL" maxlength="255" size="30" value="" /><br /><br />
+        <input type="button" name="submit" value="Submit Query" onClick="viewXML(this.form)" />
+        </form>
+    </div>
+    </body>
+</html>
